@@ -40,6 +40,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INSTALL_DRM" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application android:name="MmsApp"
             android:label="@string/app_label"
@@ -298,6 +300,10 @@
                 <action android:name="com.android.mms.intent.action.MESSAGING_APP_NOTIFICATIONS" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </activity>
+
+        <activity android:name=".ui.QuickReplyBox"
+            android:theme="@android:style/Theme.Holo.Dialog">
         </activity>
 
     </application>

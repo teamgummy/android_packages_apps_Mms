@@ -1,6 +1,7 @@
 package com.android.mms.ui;
 
 import com.android.mms.R;
+import com.android.mms.transaction.MessagingNotification;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -102,6 +103,8 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
         values.put("SEEN", 1);
         getContentResolver().update(Uri.parse("content://sms/"),
                 values, "_id="+messageId, null);
+        // oh hey let's just update notifications if people decide to reply as well
+        MessagingNotification.blockingUpdateAllNotifications(mContext);
     }
 
     @Override

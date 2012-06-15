@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
+import android.content.ContentValues;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.telephony.SmsManager;
@@ -26,6 +28,7 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
     private TextView mNameLabel;
     private String mPhoneNumber;
     private String mContactName;
+    private long messageId;
     private ImageButton mSendSmsButton;
     private EditText mEditBox;
     private Context mContext;
@@ -47,6 +50,7 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
         Bundle extras = getIntent().getExtras();
         mPhoneNumber = extras.getString("numbers");
         mContactName = extras.getString("name");
+        messageId = extras.getLong("id");
         mNameLabel = (TextView) mView.findViewById(R.id.name_label);
         mNameLabel.setText(mContactName);
         mSendSmsButton = (ImageButton) mView.findViewById(R.id.send_sms_button);
@@ -88,9 +92,17 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
         try {
             sms.sendTextMessage(mPhoneNumber, null, mMessage, null, null);
         } catch (IllegalArgumentException e) {
-        }            
+        }
+        setRead();           
     }
 
+    private void setRead() {
+        ContentValues values = new ContentValues();
+        values.put("READ", 1);
+        values.put("SEEN", 1);
+        getContentResolver().update(Uri.parse("content://sms/"),
+                values, "_id="+messageId, null);
+    }
     @Override
     public void onDismiss(DialogInterface dialog) {
         finish();

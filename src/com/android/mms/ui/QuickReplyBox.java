@@ -103,6 +103,7 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
         getContentResolver().update(Uri.parse("content://sms/"),
                 values, "_id="+messageId, null);
     }
+
     @Override
     public void onDismiss(DialogInterface dialog) {
         finish();

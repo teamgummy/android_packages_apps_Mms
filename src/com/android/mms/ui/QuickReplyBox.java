@@ -1,11 +1,11 @@
 package com.android.mms.ui;
 
 import com.android.mms.R;
-import com.android.mms.transaction.MessagingNotification;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.KeyguardManager;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
@@ -94,7 +94,8 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
             sms.sendTextMessage(mPhoneNumber, null, mMessage, null, null);
         } catch (IllegalArgumentException e) {
         }
-        setRead();           
+        setRead();
+        addMessageToSent(mMessage);
     }
 
     private void setRead() {
@@ -103,8 +104,16 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
         values.put("SEEN", 1);
         getContentResolver().update(Uri.parse("content://sms/"),
                 values, "_id="+messageId, null);
-        // oh hey let's just update notifications if people decide to reply as well
-        MessagingNotification.blockingUpdateAllNotifications(mContext);
+        NotificationManager nm = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        // 123 is the code for SMS notification
+        nm.cancel(123);
+    }
+
+    private void addMessageToSent(String messageSent) {
+        ContentValues sentSms = new ContentValues();
+        sentSms.put("address", mPhoneNumber);
+        sentSms.put("body", messageSent);
+        getContentResolver().insert(Uri.parse("content://sms/sent"), sentSms);
     }
 
     @Override

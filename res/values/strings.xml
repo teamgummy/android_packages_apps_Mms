@@ -749,5 +749,7 @@
     <!-- Message of the dialog used to disable messaging notifications [CHAR LIMIT=none] -->
     <string name="disable_notifications_dialog_message">Stop duplicate text message notifications from default Messaging app?</string>
 
+    <string name="quick_reply_sending">Sending...</string>
+
 </resources>
 

@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.telephony.SmsManager;
 import android.view.inputmethod.InputMethodManager;
@@ -22,6 +23,7 @@ import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class QuickReplyBox extends Activity implements OnDismissListener, OnClickListener {
 
@@ -40,7 +42,7 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         KeyguardManager km = (KeyguardManager)getSystemService(Context.KEYGUARD_SERVICE);
-    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         kl = km.newKeyguardLock("IN");
         kl.disableKeyguard();
 
@@ -71,6 +73,7 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
 
     @Override
     public void onClick(View v) {
+    	Handler h = new Handler();
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         if (v == mSendSmsButton) {
             if (keysAreShowing) {
@@ -78,7 +81,15 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
                 keysAreShowing = false;
             }
             sendSms();
-            finish();
+            // adding in a toastbox to show message is sending
+            // also made a runtime delay so it wouldnt quickly go back to the lockscreen, as the lockscreen covers toasts
+            Toast.makeText(this, R.string.quick_reply_sending, Toast.LENGTH_SHORT).show();
+            h.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                	finish();
+                }
+            },250);
         } else if (v == mEditBox) {
             imm.showSoftInput(mEditBox, 0);
             keysAreShowing = true;
@@ -118,6 +129,41 @@ public class QuickReplyBox extends Activity implements OnDismissListener, OnClic
 
     @Override
     public void onDismiss(DialogInterface dialog) {
-        finish();
+    	//re-did the dismiss to allow you to stay, close, or mark as read.
+    	AlertDialog.Builder alert = new AlertDialog.Builder(this);
+    	alert.setTitle("Nothing Has Been Sent");
+    	alert.setMessage("Did you want to cancel this message?");
+    	
+    	alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+            	finish();
+            }
+        });
+        
+    	alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+            	LayoutInflater inflater = LayoutInflater.from(QuickReplyBox.this);
+                final View mView = inflater.inflate(R.layout.quick_reply_box, null);
+                AlertDialog alert = new AlertDialog.Builder(QuickReplyBox.this).setView(mView).create();
+                
+                mNameLabel = (TextView) mView.findViewById(R.id.name_label);
+                mNameLabel.setText(mContactName);
+                mSendSmsButton = (ImageButton) mView.findViewById(R.id.send_sms_button);
+                mSendSmsButton.setOnClickListener(QuickReplyBox.this);
+                mEditBox = (EditText) mView.findViewById(R.id.edit_box);
+                mEditBox.setOnClickListener(QuickReplyBox.this);
+                alert.setOnDismissListener(QuickReplyBox.this);
+                alert.show();
+            }
+        });
+    	
+    	alert.setNeutralButton("Mark Read", new DialogInterface.OnClickListener() {
+    		public void onClick(DialogInterface dialog, int whichButton) {
+    			setRead();
+    			finish();
+            }
+    	});
+    	
+    	alert.show();
     }
 }
